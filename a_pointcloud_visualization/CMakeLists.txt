@@ -15,6 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  pcl_ros
+  duckietown_msgs
+  geometry_msgs
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
