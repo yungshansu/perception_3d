@@ -15,14 +15,18 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include "pcl_ros/point_cloud.h"
-ros::Publisher pointcloudXYZ;
+#include <boost/foreach.hpp>
+#include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/filters/conditional_removal.h>
+ros::Publisher pointcloudXYZRGB;
 ros::Publisher mask_pub;
 ros::Publisher result_pub;
 using namespace pcl;
 using namespace cv;
 using namespace sensor_msgs;
 using namespace message_filters;
-void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input, const ImageConstPtr& rgb)
+typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloudXYZRGB;
+void  cloud_cb (const PointCloudXYZRGB::ConstPtr& input, const ImageConstPtr& rgb)
 {
 	ROS_INFO("test");
 	cv_bridge::CvImagePtr cv_ptr;
@@ -44,20 +48,59 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input, const ImageConstP
         Scalar hsv_h(180, 255, 255);
         Mat bw;
         inRange(hsvImg, hsv_l, hsv_h, bw);
-        
+
+	//cvtColor(hsvImg,cv_ptr->image, CV_HSV2BGR);
+	//cv_ptr->image.copyTo(cv_ptr->image,bw );
+	
+
+	
+		ROS_INFO("try2");
 	cv_bridge::CvImage out_msg;
 	out_msg.header   = rgb->header; // Same timestamp and tf frame as input image
 	out_msg.encoding = sensor_msgs::image_encodings::MONO8; // Or whatever
-	out_msg.image = bw; // Your cv::Mat
+	bw.copyTo(out_msg.image);// = bw; // Your cv::Mat
 	mask_pub.publish(out_msg.toImageMsg());
-	for(int i=0;i<bw.rows;i++)
-	    for(int j=0;j<bw.cols;j++)
-		if(bw.at<double>(j,i)==0){
-		    cv_ptr->image.at<Vec3d>(j,i)[0]=0;
-		    cv_ptr->image.at<Vec3d>(j,i)[1]=0;
-		    cv_ptr->image.at<Vec3d>(j,i)[2]=0;
-		}        
 	
+		ROS_INFO("try3");
+	//cvtColor(hsvImg,cv_ptr->image, CV_HSV2BGR);
+	//result_pub.publish(cv_ptr->toImageMsg());
+	for(int i=0;i<bw.rows;i++){
+	    for(int j=0;j<bw.cols;j++)
+		if((bw.at<uchar>(i,j))==0){
+		    cv_ptr->image.at<Vec3b>(i,j)[0]=0;
+		    cv_ptr->image.at<Vec3b>(i,j)[1]=0;
+		    cv_ptr->image.at<Vec3b>(i,j)[2]=0;
+		}
+		   // input->points[j*bw.cols+i].z=100;
+	}
+	//cvtColor(hsvImg,cv_ptr->image, CV_HSV2BGR);
+	result_pub.publish(cv_ptr->toImageMsg());
+	
+		ROS_INFO("try4");
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	
+	pcl::copyPointCloud (*input,*cloud);
+	for(int i=0;i<bw.rows;i++){
+              for(int j=0;j<bw.cols;j++)
+                  if((bw.at<uchar>(i,j))==0){
+                      cloud->points[i*bw.cols+j].z= std::numeric_limits<float>::quiet_NaN();
+                  }   
+                     // input->points[j*bw.cols+i].z=100;
+        }    
+	//pcl::ConditionAnd<pcl::PointXYZRGB>::Ptr range_cond (new pcl::ConditionAnd<pcl::PointXYZRGB> ());
+        //range_cond->addComparison (pcl::FieldComparison<pcl::PointXYZRGB>::ConstPtr (new  pcl::FieldComparison<pcl::PointXYZRGB> ("z", pcl::ComparisonOps::GT, 1000)));
+        // build the filter
+        //pcl::ConditionalRemoval<pcl::PointXYZRGB> condrem;
+        //condrem.setCondition (range_cond);
+        //condrem.setInputCloud (cloud);
+        //condrem.setKeepOrganized(true);
+        // apply filter
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+        //condrem.filter (*cloud_filtered);
+	std::vector<int> ind;
+	printf("Original point Size: %d %d %d\n",cloud_filtered->points.size(),cloud_filtered->width,cloud_filtered->height);	
+	pcl::removeNaNFromPointCloud(*cloud, *cloud_filtered, ind); 	
+	printf("Original point Size: %d %d %d\n",cloud_filtered->points.size(),cloud_filtered->width,cloud_filtered->height);	
 	/*Mat res;
 	bitwise_and(cv_ptr->image,bw,res);
 	out_msg.image=res;
@@ -75,13 +118,15 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input, const ImageConstP
 	// Do data processing here...
 	//output = *input;
 	//pcl::PointCloud<pcl::PointXYZ> cloud;
-	pcl::PointCloud<pcl::PointXYZRGB> cloud;
-        pcl::fromROSMsg (*input, cloud);//convert from PointCloud2 to pcl
+	//pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+        //pcl::fromROSMsg (*input, *cloud);//convert from PointCloud2 to pcl
     	//pcl::toROSMsg(cloud, pcl_to_ros_pointcloud2);//convert back to PointCloud2
 	
 	//publish to topics
-	pointcloudXYZ.publish(cloud);
-	ROS_INFO("Success output");//cout
+	pointcloudXYZRGB.publish(*cloud_filtered);
+	ROS_INFO("Successi output");//cout
+	hsvImg.release();
+	bw.release();
 }   
 int main (int argc, char** argv)
 {
@@ -90,15 +135,15 @@ int main (int argc, char** argv)
      ros::NodeHandle nh;   
      // Create a ROS subscriber for the input point cloud
      //ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> ("/camera/depth_registered/points", 1, cloud_cb);
-     message_filters::Subscriber<sensor_msgs::PointCloud2> pcl_sub(nh, "/camera/depth_registered/points", 1);
+     message_filters::Subscriber<PointCloudXYZRGB> pcl_sub(nh, "/camera/depth_registered/points", 1);
      message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, "/camera/rgb/image_rect_color", 1);
-     typedef sync_policies::ApproximateTime<PointCloud2, Image> MySyncPolicy;
+     typedef sync_policies::ApproximateTime<PointCloudXYZRGB, Image> MySyncPolicy;
   // ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
      Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), pcl_sub, rgb_sub);
      //TimeSynchronizer<sensor_msgs::PointCloud2, sensor_msgs::Image > sync(pcl_sub, rgb_sub, 10);
      sync.registerCallback(boost::bind(&cloud_cb, _1, _2));
      ROS_INFO("try"); // Create a ROS publisher for the output point cloud
-     pointcloudXYZ = nh.advertise<pcl::PointCloud<pcl::PointXYZRGB> > ("ros_pointcloudxyz", 1);
+     pointcloudXYZRGB = nh.advertise<PointCloudXYZRGB > ("/camera/ros_pointcloudxyz", 1);
      
      mask_pub = nh.advertise<Image > ("mask", 1);
      result_pub = nh.advertise<Image > ("result", 1);

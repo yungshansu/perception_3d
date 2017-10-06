@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(perception_example)
+project(d_pcl_surface_normal)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -201,7 +201,7 @@ include_directories(
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
-add_executable(pcl_example src/pcl_example.cpp)
-target_link_libraries(pcl_example ${catkin_LIBRARIES})
+add_executable(task1 src/task1.cpp)
+target_link_libraries(task1 ${catkin_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
