@@ -5,10 +5,29 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include "pcl_ros/point_cloud.h"
+#define HEIGHT  
+#define WIDTH   
 ros::Publisher pub;
 ros::Publisher pointcloudXYZ;
 ros::Publisher pointcloud2_publisher;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloudXYZ;
+float count_valid_percentage(PointCloudXYZ*  cloud){
+    int i, j;
+    float max_valid, min_valid, percentage;
+    float count = 0.0;
+    float tmp;
+    for(i=0;i<cloud->height;i++){
+        for(j=0;j<cloud->width;j++){
+            tmp = cloud->data[i*j].z;//type of tmp is PointXYZ
+            if( tmp == INF || tmp == NaN || tmp == -INF )
+                counter ++;
+            cout<< tmp<<endl;
+        }
+    }
+    percentage = 1- (count / (HEIGH * WIDTH));
+	ROS_INFO("%f", percentage*100);//cout
+    return percentage;
+}
 void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
 {
 	 // Create a container for the data.
@@ -29,7 +48,9 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
        */
 
     	pcl::toROSMsg(cloud, pcl_to_ros_pointcloud2);//convert back to PointCloud2
-	
+    //count valid percentage of output    
+	float percentage;
+    percentage = count_valid_percentage(&cloud);
 	//publish to topics
     	pub.publish (output);
 	pointcloudXYZ.publish(cloud);
