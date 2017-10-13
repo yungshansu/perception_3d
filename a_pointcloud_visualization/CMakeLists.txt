@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   pcl_ros
-  duckietown_msgs
+  #duckietown_msgs
   geometry_msgs
   image_transport
 )
@@ -202,6 +202,9 @@ include_directories(
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
-
+add_executable(pcl_example src/pcl_example.cpp)
+target_link_libraries(pcl_example ${catkin_LIBRARIES})
+add_executable(findvalid src/findvalid.cpp)
+target_link_libraries(findvalid ${catkin_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   cv_bridge
-  duckietown_msgs
+  #duckietown_msgs
   geometry_msgs
   roscpp
   rospy

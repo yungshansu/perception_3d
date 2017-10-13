@@ -4,11 +4,29 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include "pcl_ros/point_cloud.h"
+#include "pcl_ros/point_cloud.h"  
 ros::Publisher pub;
 ros::Publisher pointcloudXYZ;
 ros::Publisher pointcloud2_publisher;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloudXYZ;
+// count PCLXYZ valid points percentage of each frame
+float count_valid_percentage(PointCloudXYZ*  cloud){
+    int i, j;
+    float max_valid, min_valid, percentage;
+    float count = 0.0;// the num of invalid points
+    float tmp;
+    for(i=0;i<cloud->height;i++){
+        for(j=0;j<cloud->width;j++){
+            tmp = cloud->points[i*j].z;
+            if(std::isnan(tmp)){// use isnan(arg) to examine tmp(z) valid or not
+                count+=1.0;}
+        }
+    }
+    //count valid percentage
+    percentage = 1.0f - count / (cloud->width * cloud->height);
+	ROS_INFO("%.2f",percentage*100);//cout
+    return percentage;
+}
 void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
 {
 	 // Create a container for the data.
@@ -29,7 +47,10 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
        */
 
     	pcl::toROSMsg(cloud, pcl_to_ros_pointcloud2);//convert back to PointCloud2
-	
+    //count valid percentage of output    
+	float percentage;
+	// pass PointXYZ to count valid point percentage	
+	percentage = count_valid_percentage(&cloud);
 	//publish to topics
     	pub.publish (output);
 	pointcloudXYZ.publish(cloud);
