@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   cv_bridge
-  duckietown_msgs
   geometry_msgs
   roscpp
   rospy
@@ -202,6 +201,8 @@ include_directories(
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 add_executable(task1 src/task1.cpp)
+add_executable(task2 src/task2.cpp)
 target_link_libraries(task1 ${catkin_LIBRARIES})
+target_link_libraries(task2 ${catkin_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
