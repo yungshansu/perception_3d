@@ -18,13 +18,15 @@ float count_valid_percentage(PointCloudXYZ*  cloud){
     for(i=0;i<cloud->height;i++){
         for(j=0;j<cloud->width;j++){
             tmp = cloud->points[i*j].z;
-            if(std::isnan(tmp)){// use isnan(arg) to examine tmp(z) valid or not
-                count+=1.0;}
+            // use isnan(arg) to examine tmp(z) valid or not
+            if(std::isnan(tmp)){
+                count+=1.0;
+            }
         }
     }
     //count valid percentage
     percentage = 1.0f - count / (cloud->width * cloud->height);
-	ROS_INFO("%.2f",percentage*100);//cout
+	ROS_INFO("%.4f",percentage*100);//cout
     return percentage;
 }
 void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
@@ -55,7 +57,7 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     	pub.publish (output);
 	pointcloudXYZ.publish(cloud);
 	pointcloud2_publisher.publish(pcl_to_ros_pointcloud2);
-	ROS_INFO("Success output");//cout
+	//ROS_INFO("Success output");//cout
 }   
 int   main (int argc, char** argv)
 {
