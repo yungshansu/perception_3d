@@ -94,7 +94,7 @@ void  cloud_cb (const PointCloudXYZRGB::ConstPtr& input, const ImageConstPtr& rg
 int main (int argc, char** argv)
 {
 	// Initialize ROS
-	ros::init (argc, argv, "task1");
+	ros::init (argc, argv, "ex_node1");
 	ros::NodeHandle nh;   
 
 	// Create a ROS subscriber for the input point cloud

@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 	istringstream (argv[3]) >> threshold;    // threshold for DoN magnitude
 
 
-	ros::init(argc, argv, "task2");
+	ros::init(argc, argv, "ex_node2");
 
 	ros::NodeHandle n;
 

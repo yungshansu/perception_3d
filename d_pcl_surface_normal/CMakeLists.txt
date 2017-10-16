@@ -201,8 +201,10 @@ include_directories(
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 add_executable(ex_node1 src/ex_node1.cpp)
-add_executable(ex_node2 src/ex_node2.cpp)
 target_link_libraries(ex_node1 ${catkin_LIBRARIES})
+add_executable(ex_node2 src/ex_node2.cpp)
 target_link_libraries(ex_node2 ${catkin_LIBRARIES})
+add_executable(task1 src/task1.cpp)
+target_link_libraries(task1 ${catkin_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
