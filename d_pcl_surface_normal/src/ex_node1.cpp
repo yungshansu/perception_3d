@@ -53,6 +53,7 @@ void  cloud_cb (const PointCloudXYZRGB::ConstPtr& input, const ImageConstPtr& rg
 	cv_bridge::CvImage out_msg;
 	out_msg.header   = rgb->header; // Same timestamp and tf frame as input image
 	out_msg.encoding = sensor_msgs::image_encodings::MONO8; 
+	out_msg.image = mask;
 	//publish mask to topic mask
 	mask_pub.publish(out_msg.toImageMsg());
 
@@ -94,7 +95,7 @@ void  cloud_cb (const PointCloudXYZRGB::ConstPtr& input, const ImageConstPtr& rg
 int main (int argc, char** argv)
 {
 	// Initialize ROS
-	ros::init (argc, argv, "task1");
+	ros::init (argc, argv, "ex_node1");
 	ros::NodeHandle nh;   
 
 	// Create a ROS subscriber for the input point cloud
